@@ -1,0 +1,13 @@
+// filepath: D:/program/CS/ModernPdfConverter/GlobalUsings.cs
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using QuestPDF.Fluent;
+global using QuestPDF.Helpers;
+global using QuestPDF.Infrastructure;
+global using PdfSharp;
+global using PdfSharp.Pdf;
+global using PdfSharp.Pdf.IO;
