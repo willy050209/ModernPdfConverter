@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
         x:Class="ModernPdfConverter.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        Icon="/Assets/icon.ico"
         Title="現代化 PDF 轉換器"
         Width="650" Height="500"
         WindowStartupLocation="CenterScreen">

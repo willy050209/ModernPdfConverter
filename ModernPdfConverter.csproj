@@ -7,12 +7,17 @@
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);NU1903</NoWarn>
     <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <Authors>willy050209</Authors>
     <Description>一個現代化、安全且高效的 PDF 轉換工具，支援影像與 Office 檔案，並提供 GUI 與 CLI 雙模式。</Description>
     <PackageProjectUrl>https://github.com/willy050209/ModernPdfConverter</PackageProjectUrl>
     <RepositoryUrl>https://github.com/willy050209/ModernPdfConverter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.11" />

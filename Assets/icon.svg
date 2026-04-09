@@ -1,0 +1,17 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圓角矩形 -->
+  <rect x="128" y="128" width="768" height="768" rx="160" fill="#2D2D2D"/>
+  
+  <!-- 文件主體 -->
+  <path d="M320 256H600L768 424V768H320V256Z" fill="white"/>
+  
+  <!-- 文件摺角 -->
+  <path d="M600 256V424H768L600 256Z" fill="#E02B20"/>
+  
+  <!-- 轉換箭頭符號 (中央) -->
+  <path d="M420 520L512 612L604 520" stroke="#E02B20" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M512 380V612" stroke="#E02B20" stroke-width="60" stroke-linecap="round"/>
+  
+  <!-- PDF 字樣 -->
+  <text x="380" y="720" fill="#E02B20" font-family="Arial, sans-serif" font-size="80" font-weight="bold">PDF</text>
+</svg>
