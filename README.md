@@ -2,20 +2,26 @@
 
 一個基於 **.NET 10** 與 **C# 14** 開發的現代化、安全且高效的 PDF 轉換工具。支援影像、Word、PowerPoint 轉換為 PDF，並具備強大的 PDF 合併功能。
 
+本工具現已支援 **Avalonia UI** 圖形化介面，提供更直覺的操作體驗！
+
 ## 🌟 核心功能
 
+- **雙模運作**: 同時支援 **GUI (圖形介面)** 與 **CLI (命令列)** 模式。
 - **影像轉換**: 使用 [QuestPDF](https://www.questpdf.com/) 高效將 JPG, PNG, BMP 轉換為 PDF 頁面。
 - **Office 轉換**: 整合 **LibreOffice CLI**，確保 Word (`.docx`) 與 PowerPoint (`.pptx`) 轉換後排版不跑位。
-- **PDF 合併**: 採用官方最新 **PDFsharp 6.2.4**，提供極速且記憶體友善的合併體驗。
-- **安全性優化**: 已修正 `NU1904` 弱點，完全移除了對舊版有風險之 `System.Drawing.Common` 的依賴。
-- **CLI 工具化**: 支援透過命令列參數傳遞來源與目的路徑。
+- **多樣化轉換模式**:
+    - **單檔轉換**: 轉換單個檔案為 PDF。
+    - **多檔批次 (GUI 獨有)**: 一次選取多個檔案，並分別轉換為獨立的 PDF。
+    - **目錄合併**: 轉換目錄下所有支援的檔案並合併成單一 PDF。
+- **安全性優化**: 已修正 `NU1903`/`NU1904` 弱點，完全移除了對舊版有風險之 `System.Drawing.Common` 的依賴。
 
 ## 🛠️ 技術棧
 
+- **UI Framework**: Avalonia UI 11.0.11 (MVVM 模式)
+- **MVVM Toolkit**: CommunityToolkit.Mvvm 8.2.2
 - **Runtime**: .NET 10.0
-- **Language**: C# 14 (Top-level statements, Primary constructors, Collection expressions)
-- **PDF Engine**: QuestPDF & PDFsharp 6.x
-- **Image Processing**: SkiaSharp
+- **PDF Engine**: QuestPDF & PDFsharp 6.2.4
+- **Image Processing**: SkiaSharp 2.88.7
 
 ## 📋 環境需求
 
@@ -33,26 +39,32 @@ cd ModernPdfConverter
 dotnet build
 ```
 
-### 使用範例
-
-#### 1. 轉換單一檔案
+### 🖥️ 使用 GUI 模式 (推薦)
+直接執行程式，不帶任何參數即可啟動圖形介面：
 ```powershell
-dotnet run -- "C:\Data\Report.docx" "C:\Output\Report.pdf"
+dotnet run
 ```
+**操作說明：**
+1. **選擇來源**：點選「單檔」、「多檔」或「目錄」按鈕。
+2. **選擇儲存路徑**：點選「瀏覽」選取輸出檔案名稱或目錄。
+3. **開始轉換**：點選「開始轉換」並查看下方日誌與進度條。
 
-#### 2. 轉換整個目錄並合併
-若來源路徑為目錄，程式會自動尋找支援的檔案進行批次轉換，並將結果合併為一個 PDF。
+### ⌨️ 使用 CLI 模式
 ```powershell
-dotnet run -- "C:\MyPhotos" "C:\Album.pdf"
+dotnet run -- [來源路徑] [目的路徑]
 ```
+- **單一檔案**: `dotnet run -- "test.docx" "result.pdf"`
+- **目錄合併**: `dotnet run -- "C:\Images" "all_images.pdf"`
 
 ## 📂 專案結構
+- `Views/`: Avalonia UI 視圖檔案。
+- `ViewModels/`: UI 展示邏輯與狀態管理。
 - `Core/`: 定義轉換介面與結果模式 (`Result<T>`)。
 - `Services/`: 實作影像、Office 轉換與 PDF 合併邏輯。
-- `Program.cs`: 現代化 CLI 進入點。
+- `Program.cs`: 混合式進入點 (CLI/GUI 偵測)。
 
 ## 🛡️ 安全性說明
-本專案已針對 `NU1904` 漏洞進行加固，透過升級至 PDFsharp 6.x 系列，解決了 `System.Drawing.Common` 的安全性風險，適合用於對安全性有要求的生產環境。
+本專案已針對 `NU1903`/`NU1904` 漏洞進行加固，並透過隱藏特定 Linux 依賴警告確保建置日誌整潔，適合用於對安全性有要求的生產環境。
 
 ## 📄 授權
 本專案採用 MIT 授權。QuestPDF 在本專案中使用 Community 授權。

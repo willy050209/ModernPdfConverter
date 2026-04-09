@@ -1,45 +1,62 @@
-// filepath: D:/program/CS/ModernPdfConverter/Program.cs
 using ModernPdfConverter.Core;
 using ModernPdfConverter.Services;
+using Avalonia;
+using ModernPdfConverter;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
-Console.WriteLine("=== 現代化 PDF 轉換器 (.NET 10) ===");
+QuestPDF.Settings.License = LicenseType.Community;
 
-if (args.Length < 2)
+if (args.Length == 0)
 {
-    Console.WriteLine("\n用法:");
-    Console.WriteLine("  dotnet run -- [來源路徑] [目的路徑]");
-    Console.WriteLine("\n範例:");
-    Console.WriteLine("  1. 轉換單一檔案: dotnet run -- \"test.docx\" \"result.pdf\"");
-    Console.WriteLine("  2. 轉換目錄並合併: dotnet run -- \"C:\\Images\" \"all_images.pdf\"");
-    return;
-}
-
-string sourcePath = args[0];
-string destinationPath = args[1];
-
-// 初始化服務
-IReadOnlyList<IFileConverter> converters = 
-[
-    new ImageConverterService(),
-    new OfficeConverterService()
-];
-
-// 處理邏輯
-if (File.Exists(sourcePath))
-{
-    await ConvertSingleFileAsync(sourcePath, destinationPath);
-}
-else if (Directory.Exists(sourcePath))
-{
-    await ConvertDirectoryAndMergeAsync(sourcePath, destinationPath);
+    // 啟動 GUI
+    BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 }
 else
 {
-    Console.WriteLine($"[錯誤] 找不到路徑: {sourcePath}");
+    // 執行 CLI
+    await RunCliAsync(args);
 }
 
-async Task ConvertSingleFileAsync(string source, string dest)
+static AppBuilder BuildAvaloniaApp()
+    => AppBuilder.Configure<App>()
+        .UsePlatformDetect()
+        .LogToTrace();
+
+static async Task RunCliAsync(string[] args)
+{
+    Console.WriteLine("=== 現代化 PDF 轉換器 (CLI 模式) ===");
+
+    if (args.Length < 2)
+    {
+        Console.WriteLine("\n用法:");
+        Console.WriteLine("  dotnet run -- [來源路徑] [目的路徑]");
+        return;
+    }
+
+    string sourcePath = args[0];
+    string destinationPath = args[1];
+
+    IReadOnlyList<IFileConverter> converters = 
+    [
+        new ImageConverterService(),
+        new OfficeConverterService()
+    ];
+
+    if (File.Exists(sourcePath))
+    {
+        await ConvertSingleFileAsync(sourcePath, destinationPath, converters);
+    }
+    else if (Directory.Exists(sourcePath))
+    {
+        await ConvertDirectoryAndMergeAsync(sourcePath, destinationPath, converters);
+    }
+    else
+    {
+        Console.WriteLine($"[錯誤] 找不到路徑: {sourcePath}");
+    }
+}
+
+static async Task ConvertSingleFileAsync(string source, string dest, IReadOnlyList<IFileConverter> converters)
 {
     var ext = Path.GetExtension(source).ToLower();
     var converter = converters.FirstOrDefault(c => c.SupportedExtensions.Contains(ext));
@@ -59,7 +76,7 @@ async Task ConvertSingleFileAsync(string source, string dest)
         Console.WriteLine($"[失敗] {result.ErrorMessage}");
 }
 
-async Task ConvertDirectoryAndMergeAsync(string sourceDir, string finalPdf)
+static async Task ConvertDirectoryAndMergeAsync(string sourceDir, string finalPdf, IReadOnlyList<IFileConverter> converters)
 {
     var files = Directory.GetFiles(sourceDir)
         .Where(f => !f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
@@ -107,7 +124,6 @@ async Task ConvertDirectoryAndMergeAsync(string sourceDir, string finalPdf)
     }
     finally
     {
-        // 清理暫存目錄
         if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
     }
 }
