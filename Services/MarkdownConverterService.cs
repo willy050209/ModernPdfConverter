@@ -1,10 +1,7 @@
 using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
-using ModernPdfConverter.Core;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
+using System.Text;
 
 namespace ModernPdfConverter.Services;
 
@@ -13,10 +10,14 @@ namespace ModernPdfConverter.Services;
 /// </summary>
 public sealed class MarkdownConverterService : IFileConverter
 {
+    /// <inheritdoc/>
     public IReadOnlyList<string> SupportedExtensions { get; } = [".md", ".markdown"];
 
+    /// <inheritdoc/>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         try
         {
             var content = await File.ReadAllTextAsync(request.SourcePath, request.CancellationToken);
@@ -141,7 +142,7 @@ public sealed class MarkdownConverterService : IFileConverter
     private string GetInlineText(ContainerInline? container)
     {
         if (container == null) return string.Empty;
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
         foreach (var inline in container)
         {
             if (inline is LiteralInline literal) sb.Append(literal.Content.ToString());

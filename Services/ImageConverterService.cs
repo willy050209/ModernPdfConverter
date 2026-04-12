@@ -1,6 +1,3 @@
-// filepath: D:/program/CS/ModernPdfConverter/Services/ImageConverterService.cs
-using ModernPdfConverter.Core;
-
 namespace ModernPdfConverter.Services;
 
 /// <summary>
@@ -14,10 +11,14 @@ public sealed class ImageConverterService : IFileConverter
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
+    /// <inheritdoc/>
     public IReadOnlyList<string> SupportedExtensions { get; } = [".jpg", ".jpeg", ".png", ".bmp"];
 
+    /// <inheritdoc/>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         try
         {
             await Task.Run(() =>

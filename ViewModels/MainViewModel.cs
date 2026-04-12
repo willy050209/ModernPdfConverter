@@ -1,24 +1,22 @@
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using ModernPdfConverter.Core;
-using ModernPdfConverter.Services;
-using Avalonia.Platform.Storage;
-using System.Text;
-
 namespace ModernPdfConverter.ViewModels;
 
-public partial class MainViewModel : ObservableObject
+/// <summary>
+/// 主視圖模型，負責管理檔案選取與轉換流程。
+/// </summary>
+/// <param name="dialogService">用於開啟對話視窗的服務。</param>
+/// <param name="converters">可用的轉換器集合。</param>
+public partial class MainViewModel(IDialogService dialogService, IEnumerable<IFileConverter> converters) : ObservableObject
 {
-    private readonly IDialogService _dialogService;
-
-    public MainViewModel(IDialogService dialogService)
+    static MainViewModel()
     {
-        _dialogService = dialogService;
+        // 靜態建構函式用於初始化全域設定，例如 QuestPDF 授權
+        QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    // Default constructor for design-time (optional, better to have a design-time data source)
-    public MainViewModel() : this(null!) { }
+    /// <summary>
+    /// 無參數建構函式，供設計時使用。
+    /// </summary>
+    public MainViewModel() : this(null!, []) { }
 
     [ObservableProperty]
     private string _sourcePath = string.Empty;
@@ -40,20 +38,23 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private double _progressValue;
 
+    /// <summary>
+    /// 轉換作業的日誌訊息集合。
+    /// </summary>
     public ObservableCollection<string> LogMessages { get; } = [];
 
-    private readonly IReadOnlyList<IFileConverter> _converters = 
-    [
-        new ImageConverterService(),
-        new OfficeConverterService(),
-        new MarkdownConverterService()
-    ];
+    // 透過主建構函式注入轉換器
+    private readonly IReadOnlyList<IFileConverter> _converters = converters.ToList();
 
+    /// <summary>
+    /// 選擇單一來源檔案。
+    /// </summary>
     [RelayCommand]
     private async Task SelectSourceFileAsync()
     {
+        ArgumentNullException.ThrowIfNull(dialogService);
         var extensions = _converters.SelectMany(c => c.SupportedExtensions).ToList();
-        var result = await _dialogService.OpenFileAsync("選擇來源檔案", extensions);
+        var result = await dialogService.OpenFileAsync("選擇來源檔案", extensions);
         if (result != null)
         {
             SourcePath = result;
@@ -62,11 +63,15 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 選擇多個來源檔案。
+    /// </summary>
     [RelayCommand]
     private async Task SelectSourceFilesAsync()
     {
+        ArgumentNullException.ThrowIfNull(dialogService);
         var extensions = _converters.SelectMany(c => c.SupportedExtensions).ToList();
-        var result = await _dialogService.OpenFilesAsync("選擇多個來源檔案", extensions);
+        var result = await dialogService.OpenFilesAsync("選擇多個來源檔案", extensions);
         if (result != null && result.Count > 0)
         {
             _selectedFiles = result.ToList();
@@ -75,10 +80,14 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 選擇來源資料夾。
+    /// </summary>
     [RelayCommand]
     private async Task SelectSourceFolderAsync()
     {
-        var result = await _dialogService.OpenFolderAsync("選擇來源資料夾");
+        ArgumentNullException.ThrowIfNull(dialogService);
+        var result = await dialogService.OpenFolderAsync("選擇來源資料夾");
         if (result != null)
         {
             SourcePath = result;
@@ -87,21 +96,29 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 選擇儲存目的地。
+    /// </summary>
     [RelayCommand]
     private async Task SelectDestinationAsync()
     {
+        ArgumentNullException.ThrowIfNull(dialogService);
         if (IsMultipleFiles || (!string.IsNullOrEmpty(SourcePath) && Directory.Exists(SourcePath)))
         {
-            var result = await _dialogService.OpenFolderAsync("選擇儲存目錄");
+            var result = await dialogService.OpenFolderAsync("選擇儲存目錄");
             if (result != null) DestinationPath = result;
         }
         else
         {
-            var result = await _dialogService.SaveFileAsync("選擇儲存路徑", "result.pdf", ".pdf");
+            var result = await dialogService.SaveFileAsync("選擇儲存路徑", "result.pdf", ".pdf");
             if (result != null) DestinationPath = result;
         }
     }
 
+    /// <summary>
+    /// 啟動轉換作業。
+    /// </summary>
+    /// <param name="ct">取消權杖。</param>
     [RelayCommand]
     private async Task ConvertAsync(CancellationToken ct)
     {

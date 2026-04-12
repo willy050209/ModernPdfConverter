@@ -1,7 +1,3 @@
-// filepath: D:/program/CS/ModernPdfConverter/Services/OfficeConverterService.cs
-using System.Diagnostics;
-using ModernPdfConverter.Core;
-
 namespace ModernPdfConverter.Services;
 
 /// <summary>
@@ -9,10 +5,14 @@ namespace ModernPdfConverter.Services;
 /// </summary>
 public sealed class OfficeConverterService : IFileConverter
 {
+    /// <inheritdoc/>
     public IReadOnlyList<string> SupportedExtensions { get; } = [".docx", ".doc", ".pptx", ".ppt", ".odt", ".rtf"];
 
+    /// <inheritdoc/>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         try
         {
             var outputDir = Path.GetDirectoryName(request.DestinationPath) ?? ".";
@@ -64,8 +64,15 @@ public static class PdfMergerService
     /// <summary>
     /// 合併多個 PDF 檔案。
     /// </summary>
+    /// <param name="sourcePaths">來源檔案路徑列表。</param>
+    /// <param name="destinationPath">目的檔案路徑。</param>
+    /// <param name="ct">取消權杖。</param>
+    /// <returns>合併結果。</returns>
     public static async Task<Result<string>> MergeAsync(IReadOnlyList<string> sourcePaths, string destinationPath, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(sourcePaths);
+        ArgumentNullException.ThrowIfNull(destinationPath);
+
         try
         {
             using var outputDocument = new PdfDocument();

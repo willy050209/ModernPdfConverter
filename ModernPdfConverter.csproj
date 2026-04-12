@@ -16,6 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ModernPdfConverter.Tests\**" />
+    <EmbeddedResource Remove="ModernPdfConverter.Tests\**" />
+    <None Remove="ModernPdfConverter.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
@@ -24,6 +30,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.0.11" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.11" />
     <PackageReference Include="Markdig" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.7" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.7" />
