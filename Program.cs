@@ -39,7 +39,8 @@ static async Task RunCliAsync(string[] args)
     IReadOnlyList<IFileConverter> converters = 
     [
         new ImageConverterService(),
-        new OfficeConverterService()
+        new OfficeConverterService(),
+        new MarkdownConverterService()
     ];
 
     if (File.Exists(sourcePath))

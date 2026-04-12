@@ -8,6 +8,7 @@
 
 - **雙模運作**: 同時支援 **GUI (圖形介面)** 與 **CLI (命令列)** 模式。
 - **影像轉換**: 使用 [QuestPDF](https://www.questpdf.com/) 高效將 JPG, PNG, BMP 轉換為 PDF 頁面。
+- **Markdown 支援**: 整合 [Markdig](https://github.com/xoofx/markdig) 解析 Markdown 並轉換為精美的 PDF。
 - **Office 轉換**: 整合 **LibreOffice CLI**，確保 Word (`.docx`) 與 PowerPoint (`.pptx`) 轉換後排版不跑位。
 - **多樣化轉換模式**:
     - **單檔轉換**: 轉換單個檔案為 PDF。
@@ -19,6 +20,7 @@
 
 - **UI Framework**: Avalonia UI 11.0.11 (MVVM 模式)
 - **MVVM Toolkit**: CommunityToolkit.Mvvm 8.2.2
+- **Markdown Parser**: Markdig 1.1.2
 - **Runtime**: .NET 10.0
 - **PDF Engine**: QuestPDF & PDFsharp 6.2.4
 - **Image Processing**: SkiaSharp 2.88.7

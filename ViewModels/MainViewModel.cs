@@ -45,7 +45,8 @@ public partial class MainViewModel : ObservableObject
     private readonly IReadOnlyList<IFileConverter> _converters = 
     [
         new ImageConverterService(),
-        new OfficeConverterService()
+        new OfficeConverterService(),
+        new MarkdownConverterService()
     ];
 
     [RelayCommand]
