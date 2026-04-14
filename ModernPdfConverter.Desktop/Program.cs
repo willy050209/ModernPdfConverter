@@ -1,6 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
+using ModernPdfConverter.Desktop.Services;
+using ModernPdfConverter.Core;
+using ModernPdfConverter.Services;
+using ModernPdfConverter.ViewModels;
+using Avalonia;
+using Avalonia.Controls;
+using QuestPDF.Infrastructure;
 
-namespace ModernPdfConverter;
+namespace ModernPdfConverter.Desktop;
 
 /// <summary>
 /// 應用程式進入點。
@@ -44,6 +51,9 @@ public static class Program
         services.AddSingleton<IFileConverter, OfficeConverterService>();
         services.AddSingleton<IFileConverter, MarkdownConverterService>();
         services.AddSingleton<IFileConverter, PlainTextConverterService>();
+
+        // 註冊平台專屬 DialogService 工廠
+        services.AddSingleton<Func<Window, IDialogService>>(w => new AvaloniaDialogService(w));
 
         // 註冊 ViewModel
         services.AddTransient<MainViewModel>();

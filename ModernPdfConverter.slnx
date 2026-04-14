@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ModernPdfConverter.Desktop/ModernPdfConverter.Desktop.csproj" />
+  <Project Path="ModernPdfConverter.Shared/ModernPdfConverter.Shared.csproj" />
+  <Project Path="ModernPdfConverter.Tests/ModernPdfConverter.Tests.csproj" />
+</Solution>

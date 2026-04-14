@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using ModernPdfConverter.Services;
 
-namespace ModernPdfConverter.Services;
+namespace ModernPdfConverter.Desktop.Services;
 
 public class AvaloniaDialogService(Window parent) : IDialogService
 {

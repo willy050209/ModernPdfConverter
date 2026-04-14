@@ -9,10 +9,9 @@ public sealed class PlainTextConverterService : IFileConverter
     public IReadOnlyList<string> SupportedExtensions { get; } = [".txt"];
 
     /// <inheritdoc/>
+    /// <exception cref="ArgumentNullException">當 request 為 null 時擲出。</exception>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         try
         {
             var content = await File.ReadAllTextAsync(request.SourcePath, request.CancellationToken);

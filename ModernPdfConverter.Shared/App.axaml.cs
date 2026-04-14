@@ -42,13 +42,13 @@ public partial class App : Application
         {
             var mainWindow = new MainWindow();
             
-            // 建立 DialogService，它需要視窗實例
-            var dialogService = new AvaloniaDialogService(mainWindow);
-            
             if (_serviceProvider != null)
             {
+                // 從 DI 取得 IDialogService 工廠 (以 Window 為參數)
+                var dialogServiceFactory = _serviceProvider.GetRequiredService<Func<Window, IDialogService>>();
+                var dialogService = dialogServiceFactory(mainWindow);
+
                 // 使用 ActivatorUtilities 手動建立 MainViewModel，並注入已建立的 dialogService
-                // 這樣 MainViewModel 依然可以透過 DI 取得其餘依賴（如未來的其他服務）
                 var viewModel = ActivatorUtilities.CreateInstance<MainViewModel>(_serviceProvider, dialogService);
                 mainWindow.DataContext = viewModel;
             }

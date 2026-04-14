@@ -14,10 +14,9 @@ public sealed class MarkdownConverterService : IFileConverter
     public IReadOnlyList<string> SupportedExtensions { get; } = [".md", ".markdown"];
 
     /// <inheritdoc/>
+    /// <exception cref="ArgumentNullException">當 request 為 null 時擲出。</exception>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         try
         {
             var content = await File.ReadAllTextAsync(request.SourcePath, request.CancellationToken);
@@ -60,7 +59,7 @@ public sealed class MarkdownConverterService : IFileConverter
         }
     }
 
-    private void RenderBlock(ColumnDescriptor column, Block block)
+    private static void RenderBlock(ColumnDescriptor column, Block block)
     {
         switch (block)
         {
@@ -113,7 +112,7 @@ public sealed class MarkdownConverterService : IFileConverter
         }
     }
 
-    private void RenderInlines(TextDescriptor text, ContainerInline? container)
+    private static void RenderInlines(TextDescriptor text, ContainerInline? container)
     {
         if (container == null) return;
         foreach (var inline in container)
@@ -139,7 +138,7 @@ public sealed class MarkdownConverterService : IFileConverter
         }
     }
 
-    private string GetInlineText(ContainerInline? container)
+    private static string GetInlineText(ContainerInline? container)
     {
         if (container == null) return string.Empty;
         var sb = new StringBuilder();
@@ -152,7 +151,7 @@ public sealed class MarkdownConverterService : IFileConverter
         return sb.ToString();
     }
 
-    private string GetCodeBlockText(CodeBlock codeBlock)
+    private static string GetCodeBlockText(CodeBlock codeBlock)
     {
         var lines = codeBlock.Lines.Lines;
         if (lines == null) return string.Empty;
