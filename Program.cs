@@ -43,6 +43,7 @@ public static class Program
         services.AddSingleton<IFileConverter, ImageConverterService>();
         services.AddSingleton<IFileConverter, OfficeConverterService>();
         services.AddSingleton<IFileConverter, MarkdownConverterService>();
+        services.AddSingleton<IFileConverter, PlainTextConverterService>();
 
         // 註冊 ViewModel
         services.AddTransient<MainViewModel>();

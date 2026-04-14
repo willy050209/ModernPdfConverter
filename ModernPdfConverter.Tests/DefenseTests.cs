@@ -20,6 +20,16 @@ public class DefenseTests
     }
 
     [Fact]
+    public async Task PlainTextConverterService_ConvertAsync_ShouldThrowArgumentNullException_WhenRequestIsNull()
+    {
+        // Arrange
+        var service = new PlainTextConverterService();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.ConvertAsync(null!));
+    }
+
+    [Fact]
     public async Task MainViewModel_SelectSourceFileAsync_ShouldThrowArgumentNullException_WhenDialogServiceIsNull()
     {
         // Arrange

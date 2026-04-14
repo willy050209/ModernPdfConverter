@@ -1,6 +1,6 @@
 # Modern PDF Converter (.NET 10)
 
-一個基於 **.NET 10** 與 **C# 14** 開發的現代化、安全且高效的 PDF 轉換工具。支援影像、Word、PowerPoint、Markdown 轉換為 PDF，並具備強大的 PDF 合併功能。
+一個基於 **.NET 10** 與 **C# 14** 開發的現代化、安全且高效的 PDF 轉換工具。支援影像、Word、PowerPoint、Markdown 與純文字轉換為 PDF，並具備強大的 PDF 合併功能。
 
 本工具現已支援 **Avalonia UI** 圖形化介面與 **單元測試專案**，提供更穩定且現代的開發標準！
 
@@ -10,6 +10,7 @@
 - **現代化架構**: 完全採用 **Dependency Injection (DI)** 依賴注入架構，實現高內聚低耦合的程式碼設計。
 - **影像轉換**: 使用 [QuestPDF](https://www.questpdf.com/) 高效將 JPG, PNG, BMP 轉換為 PDF 頁面。
 - **Markdown 支援**: 整合 [Markdig](https://github.com/xoofx/markdig) 解析 Markdown 並轉換為精美的 PDF。
+- **純文字支援**: 將 `.txt` 檔案直接轉換為 PDF 格式。
 - **Office 轉換**: 整合 **LibreOffice CLI**，確保 Word (`.docx`) 與 PowerPoint (`.pptx`) 轉換後排版不跑位。
 - **多樣化轉換模式**:
     - **單檔轉換**: 轉換單個檔案為 PDF。
