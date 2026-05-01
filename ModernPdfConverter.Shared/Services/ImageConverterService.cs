@@ -15,7 +15,6 @@ public sealed class ImageConverterService : IFileConverter
     public IReadOnlyList<string> SupportedExtensions { get; } = [".jpg", ".jpeg", ".png", ".bmp"];
 
     /// <inheritdoc/>
-    /// <exception cref="ArgumentNullException">當 request 為 null 時擲出。</exception>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
         try

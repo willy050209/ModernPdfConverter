@@ -3,13 +3,12 @@ namespace ModernPdfConverter.Services;
 /// <summary>
 /// 使用 LibreOffice CLI 將 Office 檔案轉換為 PDF 的服務。
 /// </summary>
-public sealed class OfficeConverterService : IFileConverter
+public sealed class OfficeConverterService(IProcessRunner processRunner) : IFileConverter
 {
     /// <inheritdoc/>
     public IReadOnlyList<string> SupportedExtensions { get; } = [".docx", ".doc", ".pptx", ".ppt", ".odt", ".rtf"];
 
     /// <inheritdoc/>
-    /// <exception cref="ArgumentNullException">當 request 為 null 時擲出。</exception>
     public async Task<Result<string>> ConvertAsync(ConversionRequest request)
     {
         try
@@ -17,26 +16,13 @@ public sealed class OfficeConverterService : IFileConverter
             var outputDir = Path.GetDirectoryName(request.DestinationPath) ?? ".";
             
             // LibreOffice 轉換指令範例: soffice --headless --convert-to pdf --outdir [dir] [file]
-            var startInfo = new ProcessStartInfo
+            var result = await processRunner.RunAsync("soffice", 
+                $"--headless --convert-to pdf --outdir \"{outputDir}\" \"{request.SourcePath}\"", 
+                request.CancellationToken);
+
+            if (result.ExitCode != 0)
             {
-                FileName = "soffice",
-                Arguments = $"--headless --convert-to pdf --outdir \"{outputDir}\" \"{request.SourcePath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using var process = new Process { StartInfo = startInfo };
-            process.Start();
-
-            // 支援逾時與取消
-            await process.WaitForExitAsync(request.CancellationToken);
-
-            if (process.ExitCode != 0)
-            {
-                var error = await process.StandardError.ReadToEndAsync(request.CancellationToken);
-                return Result<string>.Failure($"LibreOffice 轉換失敗: {error}");
+                return Result<string>.Failure($"LibreOffice 轉換失敗: {result.StandardError}");
             }
 
             // LibreOffice 會自動根據檔名生成 .pdf，我們將其重新命名為使用者指定的名稱

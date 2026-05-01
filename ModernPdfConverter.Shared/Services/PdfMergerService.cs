@@ -3,17 +3,10 @@ namespace ModernPdfConverter.Services;
 /// <summary>
 /// 使用 PdfSharp 合併多個 PDF 檔案的服務。
 /// </summary>
-public static class PdfMergerService
+public sealed class PdfMergerService : IPdfMergerService
 {
-    /// <summary>
-    /// 合併多個 PDF 檔案。
-    /// </summary>
-    /// <param name="sourcePaths">來源檔案路徑列表。</param>
-    /// <param name="destinationPath">目的檔案路徑。</param>
-    /// <param name="ct">取消權杖。</param>
-    /// <returns>合併結果。</returns>
-    /// <exception cref="ArgumentNullException">當 sourcePaths 或 destinationPath 為 null 時擲出。</exception>
-    public static async Task<Result<string>> MergeAsync(IReadOnlyList<string> sourcePaths, string destinationPath, CancellationToken ct = default)
+    /// <inheritdoc/>
+    public async Task<Result<string>> MergeAsync(IReadOnlyList<string> sourcePaths, string destinationPath, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(sourcePaths);
         ArgumentNullException.ThrowIfNull(destinationPath);

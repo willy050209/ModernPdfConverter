@@ -46,11 +46,18 @@ public static class Program
     {
         var services = new ServiceCollection();
 
+        // 註冊基礎服務
+        services.AddSingleton<IProcessRunner, SystemProcessRunner>();
+        services.AddSingleton<IPdfMergerService, PdfMergerService>();
+
         // 註冊轉換器
         services.AddSingleton<IFileConverter, ImageConverterService>();
         services.AddSingleton<IFileConverter, OfficeConverterService>();
         services.AddSingleton<IFileConverter, MarkdownConverterService>();
         services.AddSingleton<IFileConverter, PlainTextConverterService>();
+
+        // 註冊編排器
+        services.AddTransient<IConversionOrchestrator, ConversionOrchestratorService>();
 
         // 註冊平台專屬 DialogService 工廠
         services.AddSingleton<Func<Window, IDialogService>>(w => new AvaloniaDialogService(w));
@@ -93,7 +100,8 @@ public static class Program
         string sourcePath = args[0];
         string destinationPath = args[1];
 
-        var converters = sp.GetServices<IFileConverter>().ToList();
+        var orchestrator = sp.GetRequiredService<IConversionOrchestrator>();
+        orchestrator.OnLogAsync += async msg => await Task.Run(() => Console.WriteLine(msg));
 
         using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (s, e) =>
@@ -105,103 +113,15 @@ public static class Program
 
         if (File.Exists(sourcePath))
         {
-            await ConvertSingleFileAsync(sourcePath, destinationPath, converters, cts.Token);
+            await orchestrator.RunSingleFileConversionAsync(sourcePath, destinationPath, cts.Token);
         }
         else if (Directory.Exists(sourcePath))
         {
-            await ConvertDirectoryAndMergeAsync(sourcePath, destinationPath, converters, cts.Token);
+            await orchestrator.RunDirectoryConversionAsync(sourcePath, destinationPath, cts.Token);
         }
         else
         {
             Console.WriteLine($"[錯誤] 找不到路徑: {sourcePath}");
-        }
-    }
-
-    /// <summary>
-    /// 轉換單一檔案。
-    /// </summary>
-    /// <param name="source">來源路徑。</param>
-    /// <param name="dest">目的路徑。</param>
-    /// <param name="converters">轉換器列表。</param>
-    /// <param name="ct">取消權杖。</param>
-    private static async Task ConvertSingleFileAsync(string source, string dest, IEnumerable<IFileConverter> converters, CancellationToken ct)
-    {
-        var ext = Path.GetExtension(source).ToLower();
-        var converter = converters.FirstOrDefault(c => c.SupportedExtensions.Contains(ext));
-
-        if (converter is null)
-        {
-            Console.WriteLine($"[錯誤] 不支援的格式: {ext}");
-            return;
-        }
-
-        Console.WriteLine($"[執行] 正在轉換: {Path.GetFileName(source)} -> {Path.GetFileName(dest)}...");
-        var result = await converter.ConvertAsync(new ConversionRequest(source, dest, ct));
-
-        if (result.IsSuccess)
-            Console.WriteLine("[成功]");
-        else
-            Console.WriteLine($"[失敗] {result.ErrorMessage}");
-    }
-
-    /// <summary>
-    /// 轉換目錄並合併。
-    /// </summary>
-    /// <param name="sourceDir">來源目錄。</param>
-    /// <param name="finalPdf">目的 PDF 路徑。</param>
-    /// <param name="converters">轉換器列表。</param>
-    /// <param name="ct">取消權杖。</param>
-    private static async Task ConvertDirectoryAndMergeAsync(string sourceDir, string finalPdf, IEnumerable<IFileConverter> converters, CancellationToken ct)
-    {
-        var files = Directory.GetFiles(sourceDir)
-            .Where(f => !f.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(f => f)
-            .ToList();
-
-        if (files.Count == 0)
-        {
-            Console.WriteLine("[跳過] 目錄中沒有可轉換的檔案。");
-            return;
-        }
-
-        Console.WriteLine($"[批次] 在目錄中找到 {files.Count} 個檔案，準備轉換並合併至 {Path.GetFileName(finalPdf)}...");
-
-        var tempPdfFiles = new List<string>();
-        var tempDir = Path.Combine(Path.GetTempPath(), "ModernPdfConverter", Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
-
-        try
-        {
-            foreach (var file in files)
-            {
-                if (ct.IsCancellationRequested) break;
-
-                var tempDest = Path.Combine(tempDir, Path.GetFileNameWithoutExtension(file) + ".pdf");
-                var ext = Path.GetExtension(file).ToLower();
-                var converter = converters.FirstOrDefault(c => c.SupportedExtensions.Contains(ext));
-
-                if (converter is null) continue;
-
-                Console.WriteLine($"  -> 處理中: {Path.GetFileName(file)}...");
-                var result = await converter.ConvertAsync(new ConversionRequest(file, tempDest, ct));
-                
-                if (result.IsSuccess) tempPdfFiles.Add(tempDest);
-            }
-
-            if (tempPdfFiles.Count > 0 && !ct.IsCancellationRequested)
-            {
-                Console.WriteLine($"[合併] 正在合併 {tempPdfFiles.Count} 個暫存檔案...");
-                var mergeResult = await PdfMergerService.MergeAsync(tempPdfFiles, finalPdf, ct);
-                
-                if (mergeResult.IsSuccess)
-                    Console.WriteLine($"[全部完成] 最終檔案已產出: {finalPdf}");
-                else
-                    Console.WriteLine($"[合併失敗] {mergeResult.ErrorMessage}");
-            }
-        }
-        finally
-        {
-            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
         }
     }
 }

@@ -13,16 +13,22 @@ public class DefenseTests
     public async Task MainViewModel_SelectSourceFileAsync_ShouldThrowArgumentNullException_WhenDialogServiceIsNull()
     {
         // Arrange
-        var viewModel = new MainViewModel(null!, []);
+        var viewModel = new MainViewModel(null!, null!, []);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () => await viewModel.SelectSourceFileCommand.ExecuteAsync(null));
     }
 
-    [Fact]
-    public async Task PdfMergerService_MergeAsync_ShouldThrowArgumentNullException_WhenPathsIsNull()
+    [Theory]
+    [InlineData(null, "dest.pdf")]
+    [InlineData("", "dest.pdf")]
+    [InlineData(" ", "dest.pdf")]
+    [InlineData("source.md", null)]
+    [InlineData("source.md", "")]
+    [InlineData("source.md", " ")]
+    public void ConversionRequest_Constructor_ShouldThrowArgumentException_WhenPathIsInvalid(string? source, string? dest)
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(async () => await PdfMergerService.MergeAsync(null!, "out.pdf"));
+        Assert.ThrowsAny<ArgumentException>(() => new ConversionRequest(source!, dest!));
     }
 }
