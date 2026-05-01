@@ -86,18 +86,22 @@ public sealed class MarkdownConverterService : IFileConverter
                 break;
 
             case ListBlock listBlock:
+                int index = 1;
                 foreach (var item in listBlock)
                 {
                     if (item is ListItemBlock listItem)
                     {
-                        column.Item().PaddingLeft(20).Text(t =>
+                        column.Item().PaddingLeft(20).Row(row =>
                         {
-                            t.Span("• ").Bold();
-                            foreach (var subBlock in listItem)
+                            var bullet = listBlock.IsOrdered ? $"{index++}." : "•";
+                            row.ConstantItem(20).Text(bullet).Bold();
+                            row.RelativeItem().Column(itemColumn =>
                             {
-                                if (subBlock is LeafBlock leaf)
-                                    RenderInlines(t, leaf.Inline);
-                            }
+                                foreach (var subBlock in listItem)
+                                {
+                                    RenderBlock(itemColumn, subBlock);
+                                }
+                            });
                         });
                     }
                 }
@@ -109,10 +113,24 @@ public sealed class MarkdownConverterService : IFileConverter
                     t.Span(GetCodeBlockText(codeBlock)).FontFamily(Fonts.CourierNew).FontSize(10);
                 });
                 break;
+
+            case ThematicBreakBlock:
+                column.Item().PaddingVertical(10).LineHorizontal(1);
+                break;
+
+            case QuoteBlock quote:
+                column.Item().PaddingLeft(10).BorderLeft(2).BorderColor(Colors.Grey.Lighten2).PaddingLeft(10).Column(qCol =>
+                {
+                    foreach (var subBlock in quote)
+                    {
+                        RenderBlock(qCol, subBlock);
+                    }
+                });
+                break;
         }
     }
 
-    private static void RenderInlines(TextDescriptor text, ContainerInline? container)
+    private static void RenderInlines(TextDescriptor text, ContainerInline? container, Action<TextSpanDescriptor>? styleAction = null)
     {
         if (container == null) return;
         foreach (var inline in container)
@@ -120,19 +138,31 @@ public sealed class MarkdownConverterService : IFileConverter
             switch (inline)
             {
                 case LiteralInline literal:
-                    text.Span(literal.Content.ToString());
+                    var span = text.Span(literal.Content.ToString());
+                    styleAction?.Invoke(span);
                     break;
                 case LineBreakInline:
                     text.Span("\n");
                     break;
                 case EmphasisInline emphasis:
-                    var content = GetInlineText(emphasis);
-                    var span = text.Span(content);
-                    if (emphasis.DelimiterCount == 2) span.Bold();
-                    else span.Italic();
+                    Action<TextSpanDescriptor> newStyle = s =>
+                    {
+                        styleAction?.Invoke(s);
+                        if (emphasis.DelimiterCount == 2) s.Bold();
+                        else s.Italic();
+                    };
+                    RenderInlines(text, emphasis, newStyle);
                     break;
                 case CodeInline code:
-                    text.Span(code.Content).FontFamily(Fonts.CourierNew).BackgroundColor(Colors.Grey.Lighten3);
+                    var codeSpan = text.Span(code.Content).FontFamily(Fonts.CourierNew).BackgroundColor(Colors.Grey.Lighten3);
+                    styleAction?.Invoke(codeSpan);
+                    break;
+                case LinkInline link:
+                    var linkSpan = text.Span(GetInlineText(link)).FontColor(Colors.Blue.Medium).Underline();
+                    styleAction?.Invoke(linkSpan);
+                    break;
+                case ContainerInline containerInline:
+                    RenderInlines(text, containerInline, styleAction);
                     break;
             }
         }
