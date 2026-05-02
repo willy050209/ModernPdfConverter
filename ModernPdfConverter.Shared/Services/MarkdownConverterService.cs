@@ -1,7 +1,13 @@
 using Markdig;
+using Markdig.Extensions.Mathematics;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using System.Text;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using CSharpMath.SkiaSharp;
+using SkiaSharp;
 
 namespace ModernPdfConverter.Services;
 
@@ -19,7 +25,10 @@ public sealed class MarkdownConverterService : IFileConverter
         try
         {
             var content = await File.ReadAllTextAsync(request.SourcePath, request.CancellationToken);
-            var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .UseMathematics()
+                .Build();
             var document = Markdown.Parse(content, pipeline);
 
             await Task.Run(() =>
@@ -106,6 +115,22 @@ public sealed class MarkdownConverterService : IFileConverter
                 }
                 break;
 
+            case MathBlock mathBlock:
+                var blockLatex = GetMathBlockText(mathBlock);
+                var blockImage = RenderMathToPng(blockLatex, 24);
+                if (blockImage != null)
+                {
+                    column.Item().PaddingVertical(10).AlignCenter().Image(blockImage).FitHeight();
+                }
+                else
+                {
+                    column.Item().PaddingVertical(5).AlignCenter().Background(Colors.Grey.Lighten4).Padding(5).Text(t =>
+                    {
+                        t.Span(blockLatex).FontFamily(Fonts.CourierNew).Italic().FontSize(11).FontColor(Colors.Blue.Medium);
+                    });
+                }
+                break;
+
             case CodeBlock codeBlock:
                 column.Item().PaddingVertical(5).Background(Colors.Grey.Lighten4).Padding(5).Text(t =>
                 {
@@ -156,6 +181,19 @@ public sealed class MarkdownConverterService : IFileConverter
                     var codeSpan = text.Span(code.Content).FontFamily(Fonts.CourierNew).BackgroundColor(Colors.Grey.Lighten3);
                     styleAction?.Invoke(codeSpan);
                     break;
+                case MathInline mathInline:
+                    var inlineLatex = mathInline.Content.ToString();
+                    var inlineImage = RenderMathToPng(inlineLatex, 14);
+                    if (inlineImage != null)
+                    {
+                        text.Element(e => e.PaddingBottom(-2).Height(14).Image(inlineImage));
+                    }
+                    else
+                    {
+                        var mathSpan = text.Span($"${inlineLatex}$").FontFamily(Fonts.CourierNew).Italic().FontColor(Colors.Blue.Medium);
+                        styleAction?.Invoke(mathSpan);
+                    }
+                    break;
                 case LinkInline link:
                     var linkSpan = text.Span(GetInlineText(link)).FontColor(Colors.Blue.Medium).Underline();
                     styleAction?.Invoke(linkSpan);
@@ -164,6 +202,23 @@ public sealed class MarkdownConverterService : IFileConverter
                     RenderInlines(text, containerInline, styleAction);
                     break;
             }
+        }
+    }
+
+    private static byte[]? RenderMathToPng(string latex, float fontSize)
+    {
+        try
+        {
+            var painter = new MathPainter { LaTeX = latex, FontSize = fontSize };
+            using var stream = painter.DrawAsStream(format: SKEncodedImageFormat.Png);
+            if (stream == null) return null;
+            using var ms = new MemoryStream();
+            stream.CopyTo(ms);
+            return ms.ToArray();
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -176,6 +231,7 @@ public sealed class MarkdownConverterService : IFileConverter
             if (inline is LiteralInline literal) sb.Append(literal.Content.ToString());
             else if (inline is ContainerInline subContainer) sb.Append(GetInlineText(subContainer));
             else if (inline is CodeInline code) sb.Append(code.Content);
+            else if (inline is MathInline math) sb.Append($"${math.Content}$");
         }
         return sb.ToString();
     }
@@ -184,6 +240,13 @@ public sealed class MarkdownConverterService : IFileConverter
     {
         var lines = codeBlock.Lines.Lines;
         if (lines == null) return string.Empty;
-        return string.Join("\n", lines.Select(l => l.ToString()));
+        return string.Join("\n", lines.Where(l => l.Slice.Text != null).Select(l => l.ToString()));
+    }
+
+    private static string GetMathBlockText(MathBlock mathBlock)
+    {
+        var lines = mathBlock.Lines.Lines;
+        if (lines == null) return string.Empty;
+        return string.Join("\n", lines.Where(l => l.Slice.Text != null).Select(l => l.ToString()));
     }
 }
